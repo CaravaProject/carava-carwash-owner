@@ -1,6 +1,6 @@
-package com.carava.`carwash-service`.global.config.security
+package com.carava.carwash.global.config.security
 
-import com.carava.`carwash-service`.auth.service.CustomUserDetailsService
+import com.carava.carwash.auth.service.CustomUserDetailsService
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse

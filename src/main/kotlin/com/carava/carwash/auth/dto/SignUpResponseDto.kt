@@ -1,4 +1,4 @@
-package com.carava.`carwash-service`.auth.dto
+package com.carava.carwash.auth.dto
 
 data class SignUpResponseDto (
     val authId: Long,

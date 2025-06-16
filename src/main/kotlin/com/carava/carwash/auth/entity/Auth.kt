@@ -1,4 +1,4 @@
-package com.carava.`carwash-service`.auth.entity
+package com.carava.carwash.auth.entity
 
 import jakarta.persistence.*
 import org.springframework.security.core.GrantedAuthority

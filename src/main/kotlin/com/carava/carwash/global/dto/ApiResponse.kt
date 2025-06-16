@@ -1,4 +1,4 @@
-package com.carava.`carwash-service`.global.dto
+package com.carava.carwash.global.dto
 
 data class ApiResponse<T> (
     val success: Boolean,

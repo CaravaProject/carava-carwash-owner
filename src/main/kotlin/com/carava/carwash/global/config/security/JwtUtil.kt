@@ -1,4 +1,4 @@
-package com.carava.`carwash-service`.global.config.security
+package com.carava.carwash.global.config.security
 
 import io.jsonwebtoken.Claims
 import io.jsonwebtoken.JwtException

@@ -1,11 +1,11 @@
-package com.carava.`carwash-service`.auth.controller
+package com.carava.carwash.auth.controller
 
-import com.carava.`carwash-service`.auth.dto.SignInRequestDto
-import com.carava.`carwash-service`.auth.dto.SignInResponseDto
-import com.carava.`carwash-service`.auth.dto.SignUpRequestDto
-import com.carava.`carwash-service`.auth.dto.SignUpResponseDto
-import com.carava.`carwash-service`.auth.service.AuthService
-import com.carava.`carwash-service`.global.dto.ApiResponse
+import com.carava.carwash.auth.dto.SignInRequestDto
+import com.carava.carwash.auth.dto.SignInResponseDto
+import com.carava.carwash.auth.dto.SignUpRequestDto
+import com.carava.carwash.auth.dto.SignUpResponseDto
+import com.carava.carwash.auth.service.AuthService
+import com.carava.carwash.global.dto.ApiResponse
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
 import org.springframework.validation.BindingResult

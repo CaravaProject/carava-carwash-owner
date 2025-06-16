@@ -1,4 +1,4 @@
-package com.carava.`carwash-service`
+package com.carava.carwash
 
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication

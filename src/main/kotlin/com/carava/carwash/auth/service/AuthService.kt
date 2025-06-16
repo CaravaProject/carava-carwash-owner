@@ -1,13 +1,13 @@
-package com.carava.`carwash-service`.auth.service
+package com.carava.carwash.auth.service
 
-import com.carava.`carwash-service`.auth.dto.SignInResponseDto
-import com.carava.`carwash-service`.auth.dto.SignInRequestDto
-import com.carava.`carwash-service`.auth.dto.SignUpResponseDto
-import com.carava.`carwash-service`.auth.dto.SignUpRequestDto
-import com.carava.`carwash-service`.auth.entity.Auth
-import com.carava.`carwash-service`.auth.repository.AuthRepository
-import com.carava.`carwash-service`.global.config.security.JwtUtil
-import com.carava.`carwash-service`.global.dto.ApiResponse
+import com.carava.carwash.auth.dto.SignInResponseDto
+import com.carava.carwash.auth.dto.SignInRequestDto
+import com.carava.carwash.auth.dto.SignUpResponseDto
+import com.carava.carwash.auth.dto.SignUpRequestDto
+import com.carava.carwash.auth.entity.Auth
+import com.carava.carwash.auth.repository.AuthRepository
+import com.carava.carwash.global.config.security.JwtUtil
+import com.carava.carwash.global.dto.ApiResponse
 import jakarta.transaction.Transactional
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.authentication.BadCredentialsException
