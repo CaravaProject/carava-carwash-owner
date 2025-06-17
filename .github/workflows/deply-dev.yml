@@ -1,0 +1,45 @@
+name: Deploy to Amazon ECR (Dev)
+
+on:
+  push:
+    branches:
+      - develop
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Show git log (debuging)
+        run: git log --oneline -n 5
+
+      - name: set image tag from merge commit
+        run: |
+          SHORT_SHA=$(git rev-parse --short HEAD)
+          echo "IMAGE_TAG=develop-$SHORT_SHA" >> $GITHUB_ENV
+          echo "Image tag: develop-$SHORT_SHA"
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        run: |
+          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} \
+          | docker login --username AWS --password-stdin ${{ secrets.ECR_REGISTRY }}
+
+      - name: Build, tag, and push Docker image to Dev ECR
+        env:
+          REGISTRY: ${{ secrets.ECR_REGISTRY }}
+          REPOSITORY: carava/carwash-dev
+        run: |
+          IMAGE_TAG=latest
+          FULL_IMAGE=$REGISTRY/$REPOSITORY:$IMAGE_TAG
+          docker build -t $FULL_IMAGE .
+          docker push $FULL_IMAGE
