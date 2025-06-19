@@ -3,7 +3,7 @@ name: Deploy to Amazon ECR (Dev)
 on:
   push:
     branches:
-      - develop
+      - dev
 
 jobs:
   deploy:
@@ -19,8 +19,8 @@ jobs:
       - name: set image tag from merge commit
         run: |
           SHORT_SHA=$(git rev-parse --short HEAD)
-          echo "IMAGE_TAG=develop-$SHORT_SHA" >> $GITHUB_ENV
-          echo "Image tag: develop-$SHORT_SHA"
+          echo "IMAGE_TAG=dev-$SHORT_SHA" >> $GITHUB_ENV
+          echo "Image tag: dev-$SHORT_SHA"
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
