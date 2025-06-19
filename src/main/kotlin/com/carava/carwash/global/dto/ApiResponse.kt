@@ -1,22 +1,23 @@
 package com.carava.carwash.global.dto
 
 data class ApiResponse<T> (
-    val success: Boolean,
+    val isSuccess: Boolean,
     val data: T? = null,
     val errorCode: String? = null
 ) {
     companion object {
         fun <T> success(data: T? = null): ApiResponse<T> {
             return ApiResponse(
-                success = true,
+                isSuccess = true,
                 data = data
             )
         }
 
-        fun <T> error(errorCode: String? = null): ApiResponse<T> {
+        fun error(errorCode: String? = null): ApiResponse<Nothing> {
             return ApiResponse(
-                success = false,
-                errorCode = errorCode
+                isSuccess = false,
+                errorCode = errorCode,
+                data = null
             )
         }
     }
