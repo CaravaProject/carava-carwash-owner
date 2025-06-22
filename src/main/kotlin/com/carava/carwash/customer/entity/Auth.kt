@@ -14,8 +14,8 @@ class Auth (
     var id: Long = 0,
 
     @Column(unique = true, nullable = false, length = 50)
-    val email: String,
+    var email: String,
 
     @Column(nullable = false)
-    val password: String,
+    var password: String,
 ) : BaseEntity()

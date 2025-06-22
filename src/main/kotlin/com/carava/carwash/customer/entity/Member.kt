@@ -3,7 +3,7 @@ package com.carava.carwash.customer.entity
 import com.carava.carwash.global.entity.BaseEntity
 import jakarta.persistence.*
 
-@Entity
+@Entity(name = "CustomerMember")
 @Table(name = "customer_member")
 class Member (
     @Id

@@ -1,7 +1,8 @@
 package com.carava.carwash.global.config.security
 
-import com.carava.carwash.customer.service.CustomUserDetailsService
+import com.carava.carwash.customer.service.CustomerUserDetailsService
 import com.carava.carwash.global.constants.UserType
+import com.carava.carwash.owner.service.OwnerUserDetailsService
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -14,7 +15,8 @@ import org.springframework.web.filter.OncePerRequestFilter
 @Component
 class JwtAuthenticationFilter(
     private val jwtUtil: JwtUtil,
-    private val customUserDetailsService: CustomUserDetailsService
+    private val customerUserDetailsService: CustomerUserDetailsService,
+    private val ownerUserDetailsService: OwnerUserDetailsService
 ) : OncePerRequestFilter() {
     override fun doFilterInternal(
         request: HttpServletRequest,
@@ -27,9 +29,9 @@ class JwtAuthenticationFilter(
             if (token != null && jwtUtil.validateToken(token)) {
                 val email = jwtUtil.getEmailFromToken(token)
                 val userType = jwtUtil.getUserTypeFromToken(token)
-                val userDetailsService = when(jwtUtil.getUserTypeFromToken(token)) {
-                    UserType.CUSTOMER -> customUserDetailsService
-                    else -> throw IllegalArgumentException("알 수 없는 userType입니다: $userType")
+                val userDetailsService = when(userType) {
+                    UserType.CUSTOMER -> customerUserDetailsService
+                    UserType.OWNER -> ownerUserDetailsService
                 }
 
                 val userDetails = userDetailsService.loadUserByUsername(email)

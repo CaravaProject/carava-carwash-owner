@@ -16,7 +16,7 @@ import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import java.time.format.DateTimeFormatter
 
-@Service
+@Service("customerAuthService")
 @Transactional
 class AuthService(
     private val authRepository: AuthRepository,
@@ -46,6 +46,7 @@ class AuthService(
     }
 
     fun signIn(request: SignInRequestDto): ApiResponse<SignInResponseDto> {
+
         authenticationManager.authenticate(
             UsernamePasswordAuthenticationToken(request.email, request.password)
         )

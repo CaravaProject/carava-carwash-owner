@@ -1,5 +1,6 @@
 package com.carava.carwash.owner.entity
 
+import com.carava.carwash.global.entity.BaseEntity
 import jakarta.persistence.*
 
 @Entity(name = "OwnerAuth")
@@ -10,8 +11,8 @@ class Auth (
     var id: Long = 0,
 
     @Column(unique = true, nullable = false, length = 50)
-    private val email: String,
+    var email: String,
 
     @Column(nullable = false)
-    private val password: String,
-)
+    var password: String,
+) : BaseEntity()
