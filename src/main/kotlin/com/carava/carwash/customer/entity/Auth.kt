@@ -1,8 +1,12 @@
 package com.carava.carwash.customer.entity
 
+import com.carava.carwash.global.entity.BaseEntity
 import jakarta.persistence.*
+import org.springframework.security.core.GrantedAuthority
+import org.springframework.security.core.authority.SimpleGrantedAuthority
+import org.springframework.security.core.userdetails.UserDetails
 
-@Entity
+@Entity(name = "CustomerAuth")
 @Table(name = "customer_auth")
 class Auth (
     @Id
@@ -10,8 +14,8 @@ class Auth (
     var id: Long = 0,
 
     @Column(unique = true, nullable = false, length = 50)
-    private val email: String,
+    val email: String,
 
     @Column(nullable = false)
-    private val password: String,
-)
+    val password: String,
+) : BaseEntity()

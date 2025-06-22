@@ -1,6 +1,7 @@
 package com.carava.carwash.global.config.security
 
-import com.carava.carwash.auth.service.CustomUserDetailsService
+import com.carava.carwash.customer.service.CustomUserDetailsService
+import com.carava.carwash.global.constants.UserType
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -20,18 +21,27 @@ class JwtAuthenticationFilter(
         response: HttpServletResponse,
         filterChain: FilterChain
     ) {
-        val token = getTokenFromRequest(request)
+        try {
+            val token = getTokenFromRequest(request)
 
-        if (token != null && jwtUtil.validateToken(token)) {
-            val email = jwtUtil.getEmailFromToken(token)
-            val userDetails = customUserDetailsService.loadUserByUsername(email)
+            if (token != null && jwtUtil.validateToken(token)) {
+                val email = jwtUtil.getEmailFromToken(token)
+                val userType = jwtUtil.getUserTypeFromToken(token)
+                val userDetailsService = when(jwtUtil.getUserTypeFromToken(token)) {
+                    UserType.CUSTOMER -> customUserDetailsService
+                    else -> throw IllegalArgumentException("알 수 없는 userType입니다: $userType")
+                }
 
-            val authentication = UsernamePasswordAuthenticationToken(
-                userDetails, null, userDetails.authorities
-            )
-            authentication.details = WebAuthenticationDetailsSource().buildDetails(request)
+                val userDetails = userDetailsService.loadUserByUsername(email)
+                val authentication = UsernamePasswordAuthenticationToken(
+                    userDetails, null, userDetails.authorities
+                )
+                authentication.details = WebAuthenticationDetailsSource().buildDetails(request)
 
-            SecurityContextHolder.getContext().authentication = authentication
+                SecurityContextHolder.getContext().authentication = authentication
+            }
+        } catch (e: Exception) {
+            //TODO: 로그에 JWT 토큰 에러 남기기
         }
 
         filterChain.doFilter(request, response)

@@ -1,8 +1,6 @@
 package com.carava.carwash.global.exception
 
-import com.carava.carwash.auth.error.EmailAlreadyExistsException
 import com.carava.carwash.global.dto.ApiResponse
-import jakarta.validation.constraints.Email
 import org.springframework.http.ResponseEntity
 import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.core.userdetails.UsernameNotFoundException

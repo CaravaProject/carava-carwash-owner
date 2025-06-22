@@ -2,7 +2,7 @@ package com.carava.carwash.owner.entity
 
 import jakarta.persistence.*
 
-@Entity
+@Entity(name = "OwnerAuth")
 @Table(name = "owner_auth")
 class Auth (
     @Id
