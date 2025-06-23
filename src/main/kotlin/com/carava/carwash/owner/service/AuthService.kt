@@ -8,6 +8,7 @@ import com.carava.carwash.global.dto.ApiResponse
 import com.carava.carwash.global.exception.EmailAlreadyExistsException
 import com.carava.carwash.owner.repository.AuthRepository
 import jakarta.transaction.Transactional
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.userdetails.UsernameNotFoundException
@@ -21,6 +22,7 @@ class AuthService(
     private val authRepository: AuthRepository,
     private val passwordEncoder: PasswordEncoder,
     private val jwtUtil: JwtUtil,
+    @Qualifier("ownerAuthenticationManager")
     private val authenticationManager: AuthenticationManager
 ) {
 

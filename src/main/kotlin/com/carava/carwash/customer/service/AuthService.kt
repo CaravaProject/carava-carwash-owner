@@ -9,6 +9,7 @@ import com.carava.carwash.global.constants.UserType
 import com.carava.carwash.global.dto.ApiResponse
 import com.carava.carwash.global.exception.EmailAlreadyExistsException
 import jakarta.transaction.Transactional
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.userdetails.UsernameNotFoundException
@@ -22,6 +23,7 @@ class AuthService(
     private val authRepository: AuthRepository,
     private val passwordEncoder: PasswordEncoder,
     private val jwtUtil: JwtUtil,
+    @Qualifier("customerAuthenticationManager")
     private val authenticationManager: AuthenticationManager
 ) {
 
