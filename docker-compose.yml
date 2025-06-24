@@ -1,16 +1,20 @@
 services:
-  app:
+  owner-app:
     env_file:
       - .env
     build: .
-    container_name: app
+    container_name: carwash-owner-app
     ports:
       - 8080:8080
     restart: always
     depends_on:
       - db
+    networks:
+      - carwash-network
+
   db:
     image: postgres:17
+    container_name: carwash-db
     environment:
       - POSTGRES_USER=${DB_USERNAME}
       - POSTGRES_PASSWORD=${DB_PASSWORD}
@@ -20,5 +24,13 @@ services:
     volumes:
       - postgres-data:/var/lib/postgresql/data
     restart: always
+    networks:
+      - carwash-network
+
 volumes:
   postgres-data:
+
+networks:
+  carwash-network:
+    name: carwash-network
+    driver: bridge
