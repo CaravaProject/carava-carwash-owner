@@ -1,21 +1,26 @@
-package com.carava.carwash.auth.controller
+package com.carava.carwash.customer.controller
 
-import com.carava.carwash.auth.dto.*
-import com.carava.carwash.auth.service.AuthService
+import com.carava.carwash.customer.dto.*
+import com.carava.carwash.customer.service.AuthService
 import com.carava.carwash.global.dto.ApiResponse
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
 import org.springframework.validation.BindingResult
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.RestController
 
-@RestController
-@RequestMapping("/api/auth")
+@RestController("customerAuthController")
+@RequestMapping("/api/customer/auth")
 class AuthController(
     private val authService: AuthService
 ) {
 
     @PostMapping("/signup")
-    fun singUp (
+    fun signUp(
         @Valid @RequestBody request: SignUpRequestDto,
         bindingResult: BindingResult
     ): ResponseEntity<ApiResponse<SignUpResponseDto>> {
@@ -29,10 +34,10 @@ class AuthController(
     }
 
     @PostMapping("/signin")
-    fun signIn (
-        @Valid @RequestBody request:SignInRequestDto,
+    fun signIn(
+        @Valid @RequestBody request: SignInRequestDto,
         bindingResult: BindingResult
-    ): ResponseEntity<ApiResponse<SignInResponseDto>> {
+    ) : ResponseEntity<ApiResponse<SignInResponseDto>> {
 
         val response = authService.signIn(request)
         return if (response.isSuccess) {
@@ -44,6 +49,6 @@ class AuthController(
 
     @GetMapping("/check-username")
     fun checkUsername(@Valid @RequestParam email: String): ResponseEntity<ApiResponse<CheckUsernameResponseDto>>
-            = ResponseEntity.ok(authService.checkUsername(email))
+    = ResponseEntity.ok(authService.checkUsername(email))
 
 }

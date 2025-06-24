@@ -1,4 +1,4 @@
-package com.carava.carwash.auth.dto
+package com.carava.carwash.owner.dto
 
 data class SignUpRequestDto (
     val email: String,

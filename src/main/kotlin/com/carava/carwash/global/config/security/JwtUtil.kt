@@ -1,5 +1,6 @@
 package com.carava.carwash.global.config.security
 
+import com.carava.carwash.global.constants.UserType
 import io.jsonwebtoken.Claims
 import io.jsonwebtoken.JwtException
 import io.jsonwebtoken.Jwts
@@ -23,7 +24,7 @@ class JwtUtil {
         return Keys.hmacShaKeyFor(secretKey.toByteArray())
     }
 
-    fun generateToken(email: String): String {
+    fun generateToken(email: String, userType: UserType): String {
         val now = Date()
         val expiryDate = Date(now.time + expiration)
 
@@ -31,12 +32,20 @@ class JwtUtil {
             .setSubject(email)
             .setIssuedAt(now)
             .setExpiration(expiryDate)
+
+            .claim("userType", userType.name)
+
             .signWith(getSigningKey(), SignatureAlgorithm.HS256)
             .compact()
     }
 
     fun getEmailFromToken(token: String): String {
         return getClaims(token).subject
+    }
+
+    fun getUserTypeFromToken(token: String): UserType {
+        val roleString = getClaims(token)["userType"] as String
+        return UserType.valueOf(roleString)
     }
 
     fun validateToken(token: String): Boolean {
