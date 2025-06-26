@@ -4,8 +4,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 
 @SpringBootApplication
-class BasicLoginApplication
+class CarwashOwnerApplication
 
 fun main(args: Array<String>) {
-	runApplication<BasicLoginApplication>(*args)
+	runApplication<CarwashOwnerApplication>(*args)
 }

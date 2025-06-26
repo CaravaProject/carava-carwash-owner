@@ -1,10 +1,10 @@
-package com.carava.basicLogin
+package com.carava.carwash
 
 import org.junit.jupiter.api.Test
 import org.springframework.boot.test.context.SpringBootTest
 
 @SpringBootTest
-class BasicLoginApplicationTests {
+class CarwashOwnerApplicationTests {
 
 	@Test
 	fun contextLoads() {
