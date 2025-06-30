@@ -39,7 +39,6 @@ jobs:
           REGISTRY: ${{ secrets.ECR_REGISTRY }}
           REPOSITORY: carava/carwash-dev
         run: |
-          IMAGE_TAG=latest
           FULL_IMAGE=$REGISTRY/$REPOSITORY:$IMAGE_TAG
           docker build -t $FULL_IMAGE .
           docker push $FULL_IMAGE
