@@ -1,5 +1,6 @@
 package com.carava.carwash.member.entity
 
+import com.carava.carwash.auth.entity.Auth
 import com.carava.carwash.global.entity.BaseEntity
 import jakarta.persistence.*
 
@@ -10,9 +11,11 @@ class Member(
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long = 0,
 
-    @Column(name = "owner_auth_id", nullable = false)
-    var authId: Long = 0,
-
     @Column(nullable = false)
     var name: String,
+
+    @OneToOne
+    @JoinColumn(name = "auth_id")
+    var auth: Auth,
+
 ) : BaseEntity()

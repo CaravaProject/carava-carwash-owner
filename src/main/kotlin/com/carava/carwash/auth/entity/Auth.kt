@@ -1,6 +1,7 @@
 package com.carava.carwash.auth.entity
 
 import com.carava.carwash.global.entity.BaseEntity
+import com.carava.carwash.member.entity.Member
 import jakarta.persistence.*
 
 @Entity(name = "auth")
@@ -15,4 +16,13 @@ class Auth (
 
     @Column(nullable = false)
     var password: String,
-) : BaseEntity()
+
+    @OneToOne(mappedBy = "auth")
+    var member: Member? = null,
+
+) : BaseEntity() {
+
+    fun getMemberId() : Long {
+        return member?.id ?: throw IllegalStateException("Auth에 연결된 Member가 없습니다.")
+    }
+}

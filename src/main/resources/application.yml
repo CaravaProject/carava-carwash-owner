@@ -13,3 +13,9 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+
+logging:
+  level:
+    com.carava.carwash: DEBUG
+    org.springframework.web: DEBUG
+    org.springframework.security: DEBUG
