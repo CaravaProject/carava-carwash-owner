@@ -3,7 +3,6 @@ package com.carava.carwash.auth.service
 import com.carava.carwash.auth.dto.*
 import com.carava.carwash.auth.entity.Auth
 import com.carava.carwash.global.config.security.JwtUtil
-import com.carava.carwash.global.dto.ApiResponse
 import com.carava.carwash.global.exception.EmailAlreadyExistsException
 import com.carava.carwash.auth.repository.AuthRepository
 import com.carava.carwash.member.dto.CreateMemberRequestDto
@@ -28,7 +27,7 @@ class AuthService(
 ) {
 
     @Transactional
-    fun signUp(request: SignUpRequestDto): ApiResponse<SignUpResponseDto> {
+    fun signUp(request: SignUpRequestDto): SignUpResponseDto {
         if (authRepository.existsByEmail(request.email)) {
             throw EmailAlreadyExistsException("이미 존재하는 이메일입니다.")
         }
@@ -45,15 +44,13 @@ class AuthService(
         val member = memberService.createMember(savedAuth, createMemberRequest)
         savedAuth.member = member
 
-        return ApiResponse.success(
-            data = SignUpResponseDto(
-                email = savedAuth.email,
-                createdAt = savedAuth.createdAt.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
-            )
+        return SignUpResponseDto(
+            email = savedAuth.email,
+            createdAt = savedAuth.createdAt.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
         )
     }
 
-    fun signIn(request: SignInRequestDto): ApiResponse<SignInResponseDto> {
+    fun signIn(request: SignInRequestDto): SignInResponseDto {
 
         authenticationManager.authenticate(
             UsernamePasswordAuthenticationToken(request.email, request.password)
@@ -64,19 +61,15 @@ class AuthService(
 
         val token = jwtUtil.generateToken(auth.email, auth.getMemberId())
 
-        return ApiResponse.success(
-            data = SignInResponseDto(
-                accessToken = token,
-                expiresIn = 86400
-            )
+        return SignInResponseDto(
+            accessToken = token,
+            expiresIn = 86400
         )
     }
 
-    fun checkUsername(email: String): ApiResponse<CheckUsernameResponseDto> {
-        return ApiResponse.success(
-            data = CheckUsernameResponseDto(
-                isDuplicate = authRepository.existsByEmail(email)
-            )
+    fun checkUsername(email: String): CheckUsernameResponseDto {
+        return CheckUsernameResponseDto(
+            isDuplicate = authRepository.existsByEmail(email)
         )
     }
 }
