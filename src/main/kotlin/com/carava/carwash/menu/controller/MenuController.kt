@@ -6,7 +6,6 @@ import com.carava.carwash.menu.dto.CreateMenuRequestDto
 import com.carava.carwash.menu.dto.CreateMenuResponseDto
 import com.carava.carwash.menu.service.MenuService
 import jakarta.validation.Valid
-import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping

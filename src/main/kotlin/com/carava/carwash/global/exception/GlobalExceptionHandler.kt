@@ -1,7 +1,6 @@
 package com.carava.carwash.global.exception
 
 import com.carava.carwash.global.dto.ApiResponse
-import org.apache.coyote.Response
 import org.springframework.http.ResponseEntity
 import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.core.userdetails.UsernameNotFoundException
