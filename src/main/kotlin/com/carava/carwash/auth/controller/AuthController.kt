@@ -4,8 +4,6 @@ import com.carava.carwash.auth.dto.*
 import com.carava.carwash.global.dto.ApiResponse
 import com.carava.carwash.auth.service.AuthService
 import jakarta.validation.Valid
-import org.springframework.http.ResponseEntity
-import org.springframework.validation.BindingResult
 import org.springframework.web.bind.annotation.*
 
 @RestController("authController")
@@ -17,34 +15,24 @@ class AuthController(
     @PostMapping("/signup")
     fun signUp(
         @Valid @RequestBody request: SignUpRequestDto,
-        bindingResult: BindingResult
-    ): ResponseEntity<ApiResponse<SignUpResponseDto>> {
+    ) : ApiResponse<SignUpResponseDto> {
 
         val response = authService.signUp(request)
-        return if (response.isSuccess) {
-            ResponseEntity.ok(response)
-        } else {
-            ResponseEntity.badRequest().body(response)
-        }
+        return ApiResponse.success(data = response)
     }
 
     @PostMapping("/signin")
     fun signIn(
         @Valid @RequestBody request: SignInRequestDto,
-        bindingResult: BindingResult
-    ) : ResponseEntity<ApiResponse<SignInResponseDto>> {
+    ) : ApiResponse<SignInResponseDto> {
 
         val response = authService.signIn(request)
-        return if (response.isSuccess) {
-            ResponseEntity.ok(response)
-        } else {
-            ResponseEntity.badRequest().body(response)
-        }
+        return ApiResponse.success(data = response)
     }
 
     @GetMapping("/check-username")
-    fun checkUsername(@Valid @RequestParam email: String): ResponseEntity<ApiResponse<CheckUsernameResponseDto>>
-            = ResponseEntity.ok(authService.checkUsername(email))
+    fun checkUsername(@Valid @RequestParam email: String): ApiResponse<CheckUsernameResponseDto>
+            = ApiResponse.success(data = authService.checkUsername(email))
 
 
 }
