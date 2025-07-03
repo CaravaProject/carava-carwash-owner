@@ -27,6 +27,14 @@ class GlobalExceptionHandler {
     fun handleUsernameNotFoundException(ex: UsernameNotFoundException) =
         ResponseEntity.badRequest().body(ApiResponse.error("USER_NOT_FOUND"))
 
+    @ExceptionHandler(ForbiddenException::class)
+    fun handleForbiddenException(ex: ForbiddenException) =
+        ResponseEntity.badRequest().body(ApiResponse.error("FORBIDDEN"))
+
+    @ExceptionHandler(NotFoundException::class)
+    fun handlerNotFoundException(ex: NotFoundException) =
+        ResponseEntity.badRequest().body(ApiResponse.error("NOT_FOUND"))
+
     @ExceptionHandler(Exception::class)
     fun handleGenericException(ex: Exception) =
         ResponseEntity.internalServerError().body(ApiResponse.error("INTERNAL_SERVER_ERROR"))

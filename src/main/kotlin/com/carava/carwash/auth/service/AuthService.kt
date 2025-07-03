@@ -44,9 +44,11 @@ class AuthService(
         val member = memberService.createMember(savedAuth, createMemberRequest)
         savedAuth.member = member
 
-        return SignUpResponseDto(
-            email = savedAuth.email,
-            createdAt = savedAuth.createdAt.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+        return ApiResponse.success(
+            data = SignUpResponseDto(
+                email = savedAuth.email,
+                createdAt = savedAuth.createdAt.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+            )
         )
     }
 
