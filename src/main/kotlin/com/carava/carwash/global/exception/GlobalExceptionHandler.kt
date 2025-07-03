@@ -1,6 +1,7 @@
 package com.carava.carwash.global.exception
 
 import com.carava.carwash.global.dto.ApiResponse
+import org.apache.coyote.Response
 import org.springframework.http.ResponseEntity
 import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.core.userdetails.UsernameNotFoundException
@@ -26,6 +27,14 @@ class GlobalExceptionHandler {
     @ExceptionHandler(UsernameNotFoundException::class)
     fun handleUsernameNotFoundException(ex: UsernameNotFoundException) =
         ResponseEntity.badRequest().body(ApiResponse.error("USER_NOT_FOUND"))
+
+    @ExceptionHandler(ForbiddenException::class)
+    fun handleForbiddenException(ex: ForbiddenException) =
+        ResponseEntity.badRequest().body(ApiResponse.error("FORBIDDEN"))
+
+    @ExceptionHandler(NotFoundException::class)
+    fun handlerNotFoundException(ex: NotFoundException) =
+        ResponseEntity.badRequest().body(ApiResponse.error("NOT_FOUND"))
 
     @ExceptionHandler(Exception::class)
     fun handleGenericException(ex: Exception) =

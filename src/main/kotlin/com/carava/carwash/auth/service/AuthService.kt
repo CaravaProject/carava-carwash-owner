@@ -48,7 +48,7 @@ class AuthService(
         return ApiResponse.success(
             data = SignUpResponseDto(
                 email = savedAuth.email,
-                createdAt = savedAuth.createdAt.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+                createdAt = savedAuth.createdAt.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
             )
         )
     }
