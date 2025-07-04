@@ -8,7 +8,6 @@ import com.carava.carwash.store.entity.Store
 import com.carava.carwash.store.repositoty.StoreRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.time.format.DateTimeFormatter
 
 @Service("storeService")
 @Transactional(readOnly = true)
@@ -28,7 +27,7 @@ class StoreService(
 
         return CreateStoreResponseDto(
             storeId = savedStore.id,
-            createdAt = savedStore.createdAt.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+            createdAt = savedStore.createdAt
         )
     }
 
