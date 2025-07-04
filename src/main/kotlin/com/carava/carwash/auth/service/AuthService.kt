@@ -13,7 +13,6 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.time.format.DateTimeFormatter
 
 @Service("authService")
 @Transactional(readOnly = true)
@@ -44,11 +43,9 @@ class AuthService(
         val member = memberService.createMember(savedAuth, createMemberRequest)
         savedAuth.member = member
 
-        return ApiResponse.success(
-            data = SignUpResponseDto(
-                email = savedAuth.email,
-                createdAt = savedAuth.createdAt.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
-            )
+        return SignUpResponseDto(
+            email = savedAuth.email,
+            createdAt = savedAuth.createdAt
         )
     }
 

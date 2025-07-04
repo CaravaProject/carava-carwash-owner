@@ -7,7 +7,6 @@ import com.carava.carwash.menu.repository.MenuRepository
 import com.carava.carwash.store.service.StoreService
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.time.format.DateTimeFormatter
 
 @Service("menuService")
 @Transactional(readOnly = true)
@@ -31,7 +30,7 @@ class MenuService(
         return CreateMenuResponseDto(
             menuId = savedMenu.id,
             name = savedMenu.name,
-            createdAt = savedMenu.createdAt.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+            createdAt = savedMenu.createdAt
         )
 
     }
