@@ -1,41 +1,53 @@
 package com.carava.carwash.global.exception
 
 import com.carava.carwash.global.dto.ApiResponse
-import org.springframework.http.ResponseEntity
+import org.springframework.http.HttpStatus
 import org.springframework.security.authentication.BadCredentialsException
 import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
+import org.springframework.web.bind.annotation.ResponseStatus
 
 @ControllerAdvice
 class GlobalExceptionHandler {
 
-    @ExceptionHandler(MethodArgumentNotValidException::class)
-    fun handleValidationException(ex: MethodArgumentNotValidException) =
-        ResponseEntity.badRequest().body(ApiResponse.error("VALIDATION_ERROR"))
-
-    @ExceptionHandler(EmailAlreadyExistsException::class)
-    fun handleEmailAlreadyExistsException(ex: EmailAlreadyExistsException) =
-        ResponseEntity.badRequest().body(ApiResponse.error("EMAIL_ALREADY_EXISTS"))
-
+    // ==== 인증/권한 ====
     @ExceptionHandler(BadCredentialsException::class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
     fun handleBadCredentialsException(ex: BadCredentialsException) =
-        ResponseEntity.badRequest().body(ApiResponse.error("INVALID_CREDENTIALS"))
+        ApiResponse.error("INVALID_CREDENTIALS")
 
     @ExceptionHandler(UsernameNotFoundException::class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
     fun handleUsernameNotFoundException(ex: UsernameNotFoundException) =
-        ResponseEntity.badRequest().body(ApiResponse.error("USER_NOT_FOUND"))
+        ApiResponse.error("USER_NOT_FOUND")
 
     @ExceptionHandler(ForbiddenException::class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
     fun handleForbiddenException(ex: ForbiddenException) =
-        ResponseEntity.badRequest().body(ApiResponse.error("FORBIDDEN"))
+        ApiResponse.error("FORBIDDEN")
 
+    // ==== 데이터 검증 ====
+    @ExceptionHandler(MethodArgumentNotValidException::class)
+    @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
+    fun handleValidationException(ex: MethodArgumentNotValidException) =
+        ApiResponse.error("VALIDATION_ERROR")
+
+    @ExceptionHandler(EmailAlreadyExistsException::class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    fun handleEmailAlreadyExistsException(ex: EmailAlreadyExistsException) =
+        ApiResponse.error("EMAIL_ALREADY_EXISTS")
+
+    // ==== 리소스 ====
     @ExceptionHandler(NotFoundException::class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
     fun handlerNotFoundException(ex: NotFoundException) =
-        ResponseEntity.badRequest().body(ApiResponse.error("NOT_FOUND"))
+        ApiResponse.error("NOT_FOUND")
 
+    // ==== 시스템 오류 ====
     @ExceptionHandler(Exception::class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     fun handleGenericException(ex: Exception) =
-        ResponseEntity.internalServerError().body(ApiResponse.error("INTERNAL_SERVER_ERROR"))
+        ApiResponse.error("INTERNAL_SERVER_ERROR")
 }
