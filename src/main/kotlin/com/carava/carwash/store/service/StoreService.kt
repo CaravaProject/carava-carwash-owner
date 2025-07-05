@@ -31,14 +31,13 @@ class StoreService(
         )
     }
 
-    fun validateStoreOwnership(storeId: Long, ownerMemberId: Long) {
+    fun validateStoreOwnership(storeId: Long, ownerMemberId: Long): Store {
         val store = storeRepository.findById(storeId)
             .orElseThrow{ NotFoundException("가게를 찾을 수 없습니다.") }
 
-        if (store.ownerMemberId != ownerMemberId) {
-            throw ForbiddenException("해당 가게에 대한 권한이 없습니다.")
-        }
+        store.validateOwnership(ownerMemberId)
 
+        return store
     }
 
 }

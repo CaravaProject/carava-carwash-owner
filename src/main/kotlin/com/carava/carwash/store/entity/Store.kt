@@ -1,6 +1,7 @@
 package com.carava.carwash.store.entity
 
 import com.carava.carwash.global.entity.BaseEntity
+import com.carava.carwash.global.exception.ForbiddenException
 import jakarta.persistence.*
 
 @Entity(name = "store")
@@ -19,4 +20,12 @@ class Store (
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     var category: StoreCategory = StoreCategory.CAR_WASH,
-) : BaseEntity()
+) : BaseEntity() {
+
+    fun validateOwnership(requestMemberId: Long) {
+        if (this.ownerMemberId != requestMemberId) {
+            throw ForbiddenException("해당 가게에 대한 권한이 없습니다.")
+        }
+    }
+
+}
