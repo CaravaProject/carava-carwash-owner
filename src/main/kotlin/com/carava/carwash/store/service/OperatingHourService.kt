@@ -6,7 +6,6 @@ import com.carava.carwash.store.entity.OperatingHour
 import com.carava.carwash.store.repositoty.OperatingHourRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.time.LocalDateTime
 
 @Service("operatingHourService")
 @Transactional(readOnly = true)

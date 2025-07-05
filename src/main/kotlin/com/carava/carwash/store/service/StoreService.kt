@@ -1,6 +1,5 @@
 package com.carava.carwash.store.service
 
-import com.carava.carwash.global.exception.ForbiddenException
 import com.carava.carwash.global.exception.NotFoundException
 import com.carava.carwash.store.dto.CreateStoreRequestDto
 import com.carava.carwash.store.dto.CreateStoreResponseDto
