@@ -1,4 +1,4 @@
-package com.carava.carwash.menu.dto
+package com.carava.carwash.store.dto
 
 import java.time.LocalDateTime
 

@@ -6,7 +6,7 @@ import java.time.DayOfWeek
 import java.time.LocalTime
 
 @Entity
-@Table(name = "operating_hours")
+@Table(name = "operating_hour")
 class OperatingHour (
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

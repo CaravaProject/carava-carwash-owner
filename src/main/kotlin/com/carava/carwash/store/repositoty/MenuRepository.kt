@@ -1,6 +1,6 @@
-package com.carava.carwash.menu.repository
+package com.carava.carwash.store.repositoty
 
-import com.carava.carwash.menu.entity.Menu
+import com.carava.carwash.store.entity.Menu
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 

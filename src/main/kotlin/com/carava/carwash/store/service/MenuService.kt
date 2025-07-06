@@ -1,10 +1,9 @@
-package com.carava.carwash.menu.service
+package com.carava.carwash.store.service
 
-import com.carava.carwash.menu.dto.CreateMenuRequestDto
-import com.carava.carwash.menu.dto.CreateMenuResponseDto
-import com.carava.carwash.menu.entity.Menu
-import com.carava.carwash.menu.repository.MenuRepository
-import com.carava.carwash.store.service.StoreService
+import com.carava.carwash.store.dto.CreateMenuRequestDto
+import com.carava.carwash.store.dto.CreateMenuResponseDto
+import com.carava.carwash.store.entity.Menu
+import com.carava.carwash.store.repositoty.MenuRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -16,12 +15,12 @@ class MenuService(
 ) {
 
     @Transactional
-    fun createMenu(request: CreateMenuRequestDto, memberId: Long) : CreateMenuResponseDto {
+    fun createMenu(storeId: Long, request: CreateMenuRequestDto, memberId: Long) : CreateMenuResponseDto {
 
-        storeService.validateStoreOwnership(request.storeId, memberId)
+        val store = storeService.validateStoreOwnership(storeId, memberId)
 
         val menu = Menu(
-            storeId = request.storeId,
+            store = store,
             name = request.name,
             price = request.price,
         )

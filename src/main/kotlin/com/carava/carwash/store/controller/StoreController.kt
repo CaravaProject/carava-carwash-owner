@@ -4,6 +4,7 @@ import com.carava.carwash.global.annotation.CurrentMemberId
 import com.carava.carwash.global.dto.ApiResponse
 import com.carava.carwash.store.dto.*
 import com.carava.carwash.store.service.HolidayService
+import com.carava.carwash.store.service.MenuService
 import com.carava.carwash.store.service.OperatingHourService
 import com.carava.carwash.store.service.StoreService
 import jakarta.validation.Valid
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/api/stores")
 class StoreController(
     private val storeService: StoreService,
+    private val menuService: MenuService,
     private val operatingHourService: OperatingHourService,
     private val holidayService: HolidayService,
 ) {
@@ -29,6 +31,17 @@ class StoreController(
         val response = storeService.createStore(request, memberId)
         return ApiResponse.success(data = response)
     }
+
+    @PostMapping("/{storeId}/menus")
+    fun createMenu(
+        @PathVariable storeId: Long,
+        @Valid @RequestBody request: CreateMenuRequestDto,
+        @CurrentMemberId memberId: Long,
+    ) : ApiResponse<CreateMenuResponseDto> {
+        val response = menuService.createMenu(storeId, request, memberId)
+        return ApiResponse.success(data = response)
+    }
+
 
     @PostMapping("/{storeId}/operating-hours")
     fun saveOperatingHours(
