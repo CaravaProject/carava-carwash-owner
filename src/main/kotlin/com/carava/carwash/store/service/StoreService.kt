@@ -1,6 +1,5 @@
 package com.carava.carwash.store.service
 
-import com.carava.carwash.global.exception.ForbiddenException
 import com.carava.carwash.global.exception.NotFoundException
 import com.carava.carwash.store.dto.CreateStoreRequestDto
 import com.carava.carwash.store.dto.CreateStoreResponseDto
@@ -31,14 +30,13 @@ class StoreService(
         )
     }
 
-    fun validateStoreOwnership(storeId: Long, ownerMemberId: Long) {
+    fun validateStoreOwnership(storeId: Long, ownerMemberId: Long): Store {
         val store = storeRepository.findById(storeId)
             .orElseThrow{ NotFoundException("가게를 찾을 수 없습니다.") }
 
-        if (store.ownerMemberId != ownerMemberId) {
-            throw ForbiddenException("해당 가게에 대한 권한이 없습니다.")
-        }
+        store.validateOwnership(ownerMemberId)
 
+        return store
     }
 
 }
