@@ -2,10 +2,8 @@ package com.carava.carwash.store.controller
 
 import com.carava.carwash.global.annotation.CurrentMemberId
 import com.carava.carwash.global.dto.ApiResponse
-import com.carava.carwash.store.dto.CreateStoreRequestDto
-import com.carava.carwash.store.dto.CreateStoreResponseDto
-import com.carava.carwash.store.dto.SaveOperatingHourRequestDto
-import com.carava.carwash.store.dto.SaveOperatingHourResponseDto
+import com.carava.carwash.store.dto.*
+import com.carava.carwash.store.service.HolidayService
 import com.carava.carwash.store.service.OperatingHourService
 import com.carava.carwash.store.service.StoreService
 import jakarta.validation.Valid
@@ -20,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController
 class StoreController(
     private val storeService: StoreService,
     private val operatingHourService: OperatingHourService,
+    private val holidayService: HolidayService,
 ) {
 
     @PostMapping
@@ -38,6 +37,16 @@ class StoreController(
         @CurrentMemberId memberId: Long
     ) : ApiResponse<SaveOperatingHourResponseDto> {
         val response = operatingHourService.saveOperatingHour(storeId, request, memberId)
+        return ApiResponse.success(data = response)
+    }
+
+    @PostMapping("/{storeId}/holidays")
+    fun createHoliday(
+        @PathVariable storeId: Long,
+        @RequestBody request: CreateHolidayRequestDto,
+        @CurrentMemberId memberId: Long
+    ) : ApiResponse<CreateHolidayResponseDto> {
+        val response = holidayService.createHoliday(storeId, request, memberId)
         return ApiResponse.success(data = response)
     }
 
