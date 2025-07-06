@@ -1,4 +1,4 @@
-package com.carava.carwash.menu.entity
+package com.carava.carwash.store.entity
 
 import com.carava.carwash.global.entity.BaseEntity
 import jakarta.persistence.*
@@ -15,8 +15,9 @@ class Menu (
     @Column(nullable = false)
     var name: String,
 
-    @Column(nullable = false)
-    var storeId: Long = 0,
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "store_id")
+    var store: Store,
 
     @Column(nullable = false)
     var price: BigDecimal,
