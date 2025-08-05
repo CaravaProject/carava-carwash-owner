@@ -1,276 +1,278 @@
 package com.carava.carwash.reservation.service
 
+import com.carava.carwash.global.dto.ApiResponse
 import com.carava.carwash.reservation.dto.*
+import com.carava.carwash.reservation.entity.Reservation
 import com.carava.carwash.reservation.entity.ReservationStatus
 import com.carava.carwash.reservation.repository.ReservationRepository
-import com.carava.carwash.shared.dto.ApiResponse
+import com.carava.carwash.store.repository.StoreRepository
 import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
+import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.math.BigDecimal
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.LocalTime
 
 @Service
-@Transactional
+@Transactional(readOnly = true)
 class OwnerReservationService(
-    private val reservationRepository: ReservationRepository
+    private val reservationRepository: ReservationRepository,
+    private val storeRepository: StoreRepository
 ) {
 
-    @Transactional(readOnly = true)
+    /**
+     * 매장의 예약 목록 조회 (페이징)
+     */
     fun getStoreReservations(
+        ownerId: Long,
         storeId: Long,
-        pageable: Pageable
+        status: ReservationStatus?,
+        date: LocalDate?,
+        page: Int,
+        size: Int
     ): ApiResponse<Page<OwnerReservationListResponseDto>> {
-        val reservations = reservationRepository.findByStoreId(storeId, pageable)
-        
-        val responseDto = reservations.map { reservation ->
-            // TODO: 실제로는 고객 정보와 차량 정보를 조회해야 함
-            OwnerReservationListResponseDto(
-                id = reservation.id,
-                customerName = "고객${reservation.customerMemberId}", // TODO: 실제 고객명 조회
-                customerPhone = "010-0000-0000", // TODO: 실제 전화번호 조회
-                carInfo = "차량 정보", // TODO: 실제 차량 정보 조회
-                reservationDate = reservation.reservationDate,
-                reservationTime = reservation.reservationTime,
-                status = reservation.status,
-                finalAmount = reservation.finalAmount,
-                serviceCount = 1, // TODO: 실제 서비스 개수 조회
-                isUrgent = isUrgentReservation(reservation.reservationDate, reservation.reservationTime)
-            )
-        }
+        return try {
+            // 매장 소유자 확인
+            val store = storeRepository.findByIdAndOwnerMemberId(storeId, ownerId)
+                ?: return ApiResponse.error("STORE_NOT_FOUND", "매장을 찾을 수 없습니다")
 
-        return ApiResponse.success(responseDto, "매장 예약 목록 조회가 완료되었습니다")
+            val pageable: Pageable = PageRequest.of(page, size, Sort.by("reservationDate", "reservationTime").descending())
+            
+            val reservationsPage = when {
+                status != null -> reservationRepository.findByStoreIdAndStatus(storeId, status, pageable)
+                else -> reservationRepository.findByStoreId(storeId, pageable)
+            }
+
+            val responsePage = reservationsPage.map { reservation ->
+                OwnerReservationListResponseDto(
+                    id = reservation.id,
+                    customerName = "고객${reservation.customerMemberId}", // 실제로는 고객 정보 조회 필요
+                    customerPhone = "010-****-****", // 실제로는 고객 정보 조회 필요
+                    carInfo = "차량 정보", // 실제로는 차량 정보 조회 필요
+                    reservationDate = reservation.reservationDate,
+                    reservationTime = reservation.reservationTime,
+                    status = reservation.status,
+                    finalAmount = reservation.finalAmount,
+                    serviceCount = 1, // 실제로는 서비스 개수 조회 필요
+                    isUrgent = isUrgentReservation(reservation)
+                )
+            }
+
+            ApiResponse.success(responsePage, "예약 목록 조회 완료")
+        } catch (e: Exception) {
+            ApiResponse.error("INTERNAL_ERROR", "예약 목록 조회 중 오류가 발생했습니다")
+        }
     }
 
-    @Transactional(readOnly = true)
-    fun getStoreReservationsByStatus(
-        storeId: Long,
-        status: ReservationStatus,
-        pageable: Pageable
-    ): ApiResponse<Page<OwnerReservationListResponseDto>> {
-        val reservations = reservationRepository.findByStoreIdAndStatus(storeId, status, pageable)
-        
-        val responseDto = reservations.map { reservation ->
-            OwnerReservationListResponseDto(
-                id = reservation.id,
-                customerName = "고객${reservation.customerMemberId}",
-                customerPhone = "010-0000-0000",
-                carInfo = "차량 정보",
-                reservationDate = reservation.reservationDate,
-                reservationTime = reservation.reservationTime,
-                status = reservation.status,
-                finalAmount = reservation.finalAmount,
-                serviceCount = 1,
-                isUrgent = isUrgentReservation(reservation.reservationDate, reservation.reservationTime)
-            )
-        }
-
-        return ApiResponse.success(responseDto, "매장 예약 목록 조회가 완료되었습니다")
-    }
-
-    @Transactional(readOnly = true)
+    /**
+     * 예약 상세 조회
+     */
     fun getReservationDetail(
+        ownerId: Long,
         storeId: Long,
         reservationId: Long
     ): ApiResponse<OwnerReservationResponseDto> {
-        val reservation = reservationRepository.findById(reservationId)
-            .orElseThrow { IllegalArgumentException("존재하지 않는 예약입니다") }
+        return try {
+            // 매장 소유자 확인
+            val store = storeRepository.findByIdAndOwnerMemberId(storeId, ownerId)
+                ?: return ApiResponse.error("STORE_NOT_FOUND", "매장을 찾을 수 없습니다")
 
-        if (reservation.storeId != storeId) {
-            throw IllegalArgumentException("다른 매장의 예약입니다")
-        }
+            val reservation = reservationRepository.findById(reservationId).orElse(null)
+                ?: return ApiResponse.error("RESERVATION_NOT_FOUND", "예약을 찾을 수 없습니다")
 
-        // TODO: 실제로는 고객 정보, 차량 정보, 서비스 정보를 조회해야 함
-        val responseDto = OwnerReservationResponseDto.from(
-            reservation = reservation,
-            customerName = "고객${reservation.customerMemberId}",
-            customerPhone = "010-0000-0000",
-            carInfo = "차량 정보",
-            services = listOf(
-                ServiceDto("서비스명", 1, reservation.finalAmount)
+            if (reservation.storeId != storeId) {
+                return ApiResponse.error("RESERVATION_NOT_FOUND", "해당 매장의 예약이 아닙니다")
+            }
+
+            val response = OwnerReservationResponseDto.from(
+                reservation = reservation,
+                customerName = "고객${reservation.customerMemberId}", // 실제로는 고객 정보 조회 필요
+                customerPhone = "010-****-****", // 실제로는 고객 정보 조회 필요
+                carInfo = "차량 정보", // 실제로는 차량 정보 조회 필요
+                services = listOf(
+                    ServiceDto("기본 세차", 1, BigDecimal("15000"))
+                ) // 실제로는 예약 메뉴 조회 필요
             )
-        )
 
-        return ApiResponse.success(responseDto, "예약 상세 조회가 완료되었습니다")
-    }
-
-    fun approveReservation(
-        storeId: Long,
-        reservationId: Long,
-        reason: String?
-    ): ApiResponse<Nothing> {
-        val reservation = reservationRepository.findById(reservationId)
-            .orElseThrow { IllegalArgumentException("존재하지 않는 예약입니다") }
-
-        if (reservation.storeId != storeId) {
-            throw IllegalArgumentException("다른 매장의 예약입니다")
+            ApiResponse.success(response, "예약 상세 조회 완료")
+        } catch (e: Exception) {
+            ApiResponse.error("INTERNAL_ERROR", "예약 상세 조회 중 오류가 발생했습니다")
         }
-
-        val approvedReservation = reservation.confirm()
-        reservationRepository.save(approvedReservation)
-
-        return ApiResponse.success("예약이 승인되었습니다")
     }
 
+    /**
+     * 예약 승인
+     */
+    @Transactional
+    fun approveReservation(
+        ownerId: Long,
+        storeId: Long,
+        reservationId: Long
+    ): ApiResponse<Nothing> {
+        return try {
+            // 매장 소유자 확인
+            val store = storeRepository.findByIdAndOwnerMemberId(storeId, ownerId)
+                ?: return ApiResponse.error("STORE_NOT_FOUND", "매장을 찾을 수 없습니다")
+
+            val reservation = reservationRepository.findById(reservationId).orElse(null)
+                ?: return ApiResponse.error("RESERVATION_NOT_FOUND", "예약을 찾을 수 없습니다")
+
+            if (reservation.storeId != storeId) {
+                return ApiResponse.error("RESERVATION_NOT_FOUND", "해당 매장의 예약이 아닙니다")
+            }
+
+            if (reservation.status != ReservationStatus.PENDING) {
+                return ApiResponse.error("INVALID_STATUS", "대기 중인 예약만 승인할 수 있습니다")
+            }
+
+            reservation.confirm()
+            reservationRepository.save(reservation)
+
+            ApiResponse.success(message = "예약이 승인되었습니다")
+        } catch (e: IllegalStateException) {
+            ApiResponse.error("INVALID_STATUS", e.message ?: "잘못된 예약 상태입니다")
+        } catch (e: Exception) {
+            ApiResponse.error("INTERNAL_ERROR", "예약 승인 중 오류가 발생했습니다")
+        }
+    }
+
+    /**
+     * 예약 거절
+     */
+    @Transactional
     fun rejectReservation(
+        ownerId: Long,
         storeId: Long,
         reservationId: Long,
         reason: String
     ): ApiResponse<Nothing> {
-        val reservation = reservationRepository.findById(reservationId)
-            .orElseThrow { IllegalArgumentException("존재하지 않는 예약입니다") }
+        return try {
+            // 매장 소유자 확인
+            val store = storeRepository.findByIdAndOwnerMemberId(storeId, ownerId)
+                ?: return ApiResponse.error("STORE_NOT_FOUND", "매장을 찾을 수 없습니다")
 
-        if (reservation.storeId != storeId) {
-            throw IllegalArgumentException("다른 매장의 예약입니다")
+            val reservation = reservationRepository.findById(reservationId).orElse(null)
+                ?: return ApiResponse.error("RESERVATION_NOT_FOUND", "예약을 찾을 수 없습니다")
+
+            if (reservation.storeId != storeId) {
+                return ApiResponse.error("RESERVATION_NOT_FOUND", "해당 매장의 예약이 아닙니다")
+            }
+
+            if (reservation.status != ReservationStatus.PENDING) {
+                return ApiResponse.error("INVALID_STATUS", "대기 중인 예약만 거절할 수 있습니다")
+            }
+
+            reservation.reject(reason)
+            reservationRepository.save(reservation)
+
+            ApiResponse.success(message = "예약이 거절되었습니다")
+        } catch (e: IllegalStateException) {
+            ApiResponse.error("INVALID_STATUS", e.message ?: "잘못된 예약 상태입니다")
+        } catch (e: Exception) {
+            ApiResponse.error("INTERNAL_ERROR", "예약 거절 중 오류가 발생했습니다")
         }
-
-        val rejectedReservation = reservation.reject(reason)
-        reservationRepository.save(rejectedReservation)
-
-        return ApiResponse.success("예약이 거절되었습니다")
     }
 
-    fun startService(
+    /**
+     * 예약 상태 변경 (서비스 시작, 완료, 노쇼 등)
+     */
+    @Transactional
+    fun updateReservationStatus(
+        ownerId: Long,
         storeId: Long,
-        reservationId: Long
+        reservationId: Long,
+        newStatus: ReservationStatus
     ): ApiResponse<Nothing> {
-        val reservation = reservationRepository.findById(reservationId)
-            .orElseThrow { IllegalArgumentException("존재하지 않는 예약입니다") }
+        return try {
+            // 매장 소유자 확인
+            val store = storeRepository.findByIdAndOwnerMemberId(storeId, ownerId)
+                ?: return ApiResponse.error("STORE_NOT_FOUND", "매장을 찾을 수 없습니다")
 
-        if (reservation.storeId != storeId) {
-            throw IllegalArgumentException("다른 매장의 예약입니다")
+            val reservation = reservationRepository.findById(reservationId).orElse(null)
+                ?: return ApiResponse.error("RESERVATION_NOT_FOUND", "예약을 찾을 수 없습니다")
+
+            if (reservation.storeId != storeId) {
+                return ApiResponse.error("RESERVATION_NOT_FOUND", "해당 매장의 예약이 아닙니다")
+            }
+
+            when (newStatus) {
+                ReservationStatus.IN_PROGRESS -> reservation.startService()
+                ReservationStatus.COMPLETED -> reservation.complete()
+                ReservationStatus.NO_SHOW -> reservation.markAsNoShow()
+                else -> return ApiResponse.error("INVALID_STATUS", "지원하지 않는 상태 변경입니다")
+            }
+
+            reservationRepository.save(reservation)
+
+            val message = when (newStatus) {
+                ReservationStatus.IN_PROGRESS -> "서비스가 시작되었습니다"
+                ReservationStatus.COMPLETED -> "서비스가 완료되었습니다"
+                ReservationStatus.NO_SHOW -> "노쇼 처리되었습니다"
+                else -> "상태가 변경되었습니다"
+            }
+
+            ApiResponse.success(message = message)
+        } catch (e: IllegalStateException) {
+            ApiResponse.error("INVALID_STATUS", e.message ?: "잘못된 예약 상태입니다")
+        } catch (e: Exception) {
+            ApiResponse.error("INTERNAL_ERROR", "상태 변경 중 오류가 발생했습니다")
         }
-
-        val inProgressReservation = reservation.startService()
-        reservationRepository.save(inProgressReservation)
-
-        return ApiResponse.success("서비스가 시작되었습니다")
     }
 
-    fun completeService(
-        storeId: Long,
-        reservationId: Long
-    ): ApiResponse<Nothing> {
-        val reservation = reservationRepository.findById(reservationId)
-            .orElseThrow { IllegalArgumentException("존재하지 않는 예약입니다") }
-
-        if (reservation.storeId != storeId) {
-            throw IllegalArgumentException("다른 매장의 예약입니다")
-        }
-
-        val completedReservation = reservation.complete()
-        reservationRepository.save(completedReservation)
-
-        return ApiResponse.success("서비스가 완료되었습니다")
-    }
-
-    fun markAsNoShow(
-        storeId: Long,
-        reservationId: Long
-    ): ApiResponse<Nothing> {
-        val reservation = reservationRepository.findById(reservationId)
-            .orElseThrow { IllegalArgumentException("존재하지 않는 예약입니다") }
-
-        if (reservation.storeId != storeId) {
-            throw IllegalArgumentException("다른 매장의 예약입니다")
-        }
-
-        val noShowReservation = reservation.markAsNoShow()
-        reservationRepository.save(noShowReservation)
-
-        return ApiResponse.success("노쇼 처리가 완료되었습니다")
-    }
-
-    @Transactional(readOnly = true)
-    fun getDailySchedule(
-        storeId: Long,
-        date: LocalDate
-    ): ApiResponse<DailyScheduleResponseDto> {
-        val reservations = reservationRepository.findByStoreIdAndReservationDate(storeId, date)
-        
-        val reservationList = reservations.map { reservation ->
-            OwnerReservationListResponseDto(
-                id = reservation.id,
-                customerName = "고객${reservation.customerMemberId}",
-                customerPhone = "010-0000-0000",
-                carInfo = "차량 정보",
-                reservationDate = reservation.reservationDate,
-                reservationTime = reservation.reservationTime,
-                status = reservation.status,
-                finalAmount = reservation.finalAmount,
-                serviceCount = 1,
-                isUrgent = isUrgentReservation(reservation.reservationDate, reservation.reservationTime)
-            )
-        }.sortedBy { it.reservationTime }
-
-        val responseDto = DailyScheduleResponseDto(
-            date = date,
-            totalReservations = reservations.size,
-            pendingCount = reservations.count { it.status == ReservationStatus.PENDING },
-            confirmedCount = reservations.count { it.status == ReservationStatus.CONFIRMED },
-            inProgressCount = reservations.count { it.status == ReservationStatus.IN_PROGRESS },
-            completedCount = reservations.count { it.status == ReservationStatus.COMPLETED },
-            reservations = reservationList
-        )
-
-        return ApiResponse.success(responseDto, "일별 스케줄 조회가 완료되었습니다")
-    }
-
-    @Transactional(readOnly = true)
+    /**
+     * 매장 예약 현황 요약
+     */
     fun getReservationSummary(
+        ownerId: Long,
         storeId: Long,
         startDate: LocalDate,
         endDate: LocalDate
     ): ApiResponse<ReservationSummaryDto> {
-        val summaryData = reservationRepository.getReservationSummaryByStore(storeId, startDate, endDate)
-        
-        var totalReservations = 0L
-        var pendingReservations = 0L
-        var confirmedReservations = 0L
-        var completedReservations = 0L
-        
-        summaryData.forEach { data ->
-            val status = data[0] as ReservationStatus
-            val count = data[1] as Long
-            
-            totalReservations += count
-            when (status) {
-                ReservationStatus.PENDING -> pendingReservations = count
-                ReservationStatus.CONFIRMED -> confirmedReservations = count
-                ReservationStatus.COMPLETED -> completedReservations = count
-                else -> { /* 다른 상태들 */ }
-            }
+        return try {
+            // 매장 소유자 확인
+            val store = storeRepository.findByIdAndOwnerMemberId(storeId, ownerId)
+                ?: return ApiResponse.error("STORE_NOT_FOUND", "매장을 찾을 수 없습니다")
+
+            val pendingCount = reservationRepository.countByStoreIdAndStatus(storeId, ReservationStatus.PENDING)
+            val confirmedCount = reservationRepository.countByStoreIdAndStatus(storeId, ReservationStatus.CONFIRMED)
+            val inProgressCount = reservationRepository.countByStoreIdAndStatus(storeId, ReservationStatus.IN_PROGRESS)
+            val completedCount = reservationRepository.countByStoreIdAndStatus(storeId, ReservationStatus.COMPLETED)
+            val cancelledCount = reservationRepository.countByStoreIdAndStatus(storeId, ReservationStatus.CANCELLED)
+            val noShowCount = reservationRepository.countByStoreIdAndStatus(storeId, ReservationStatus.NO_SHOW)
+
+            // 오늘 예약들
+            val todayReservations = reservationRepository.findByStoreIdAndReservationDate(storeId, LocalDate.now())
+            val todayRevenue = todayReservations
+                .filter { it.status == ReservationStatus.COMPLETED }
+                .sumOf { it.finalAmount }
+
+            val summary = ReservationSummaryDto(
+                pendingCount = pendingCount,
+                confirmedCount = confirmedCount,
+                inProgressCount = inProgressCount,
+                completedCount = completedCount,
+                cancelledCount = cancelledCount,
+                noShowCount = noShowCount,
+                todayRevenue = todayRevenue,
+                totalReservations = pendingCount + confirmedCount + inProgressCount + completedCount + cancelledCount + noShowCount
+            )
+
+            ApiResponse.success(summary, "예약 현황 요약 조회 완료")
+        } catch (e: Exception) {
+            ApiResponse.error("INTERNAL_ERROR", "예약 현황 조회 중 오류가 발생했습니다")
         }
-
-        // 완료된 예약들의 총 매출 계산
-        val completedReservations = reservationRepository.findByStoreIdAndReservationDateBetween(
-            storeId, startDate, endDate
-        ).filter { it.status == ReservationStatus.COMPLETED }
-        
-        val totalRevenue = completedReservations.sumOf { it.finalAmount }
-
-        val responseDto = ReservationSummaryDto(
-            totalReservations = totalReservations,
-            pendingReservations = pendingReservations,
-            confirmedReservations = confirmedReservations,
-            completedReservations = completedReservations.size.toLong(),
-            totalRevenue = totalRevenue.toString()
-        )
-
-        return ApiResponse.success(responseDto, "예약 현황 요약 조회가 완료되었습니다")
     }
 
-    private fun isUrgentReservation(reservationDate: LocalDate, reservationTime: LocalTime): Boolean {
-        // 예약 시간이 2시간 이내인 경우 긴급으로 표시
-        val now = LocalDate.now()
-        val currentTime = LocalTime.now()
-        
-        return when {
-            reservationDate.isBefore(now) -> false
-            reservationDate.isEqual(now) -> reservationTime.isBefore(currentTime.plusHours(2))
-            else -> false
-        }
+    /**
+     * 긴급 예약 여부 판단 (예약 시간이 2시간 이내인 경우)
+     */
+    private fun isUrgentReservation(reservation: Reservation): Boolean {
+        val reservationDateTime = LocalDateTime.of(reservation.reservationDate, reservation.reservationTime)
+        val now = LocalDateTime.now()
+        return reservationDateTime.isAfter(now) && reservationDateTime.isBefore(now.plusHours(2))
     }
 } 

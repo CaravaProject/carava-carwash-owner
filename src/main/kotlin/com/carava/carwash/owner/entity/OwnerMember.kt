@@ -1,6 +1,6 @@
 package com.carava.carwash.owner.entity
 
-import com.carava.carwash.shared.entity.BaseEntity
+import com.carava.carwash.global.entity.BaseEntity
 import jakarta.persistence.*
 
 @Entity
