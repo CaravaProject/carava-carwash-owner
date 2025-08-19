@@ -39,6 +39,14 @@ class JwtUtil {
         return getClaims(token).subject
     }
 
+    fun getMemberIdFromToken(token: String): Long {
+        // TODO: 실제 구현에서는 JWT에 memberId를 포함하거나, 
+        // email로 DB에서 조회하여 memberId를 반환해야 함
+        // 현재는 임시로 email을 Long으로 변환 (테스트용)
+        val email = getEmailFromToken(token)
+        return email.hashCode().toLong().let { if (it < 0) -it else it }
+    }
+
     fun validateToken(token: String): Boolean {
         return try {
             getClaims(token)

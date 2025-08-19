@@ -1,6 +1,7 @@
 package com.carava.carwash.store.entity
 
 import com.carava.carwash.global.entity.BaseEntity
+import com.carava.carwash.global.exception.UnauthorizedAccessException
 import jakarta.persistence.*
 import java.math.BigDecimal
 
@@ -99,5 +100,16 @@ data class Store(
         name?.let { this.name = it }
         description?.let { this.description = it }
         phone?.let { this.phone = it }
+    }
+
+    /**
+     * 매장 소유권 검증
+     * @param requestMemberId 요청한 회원 ID
+     * @throws UnauthorizedAccessException 소유권이 없는 경우
+     */
+    fun validateOwnership(requestMemberId: Long) {
+        if (this.ownerMemberId != requestMemberId) {
+            throw UnauthorizedAccessException("해당 매장에 대한 권한이 없습니다")
+        }
     }
 } 

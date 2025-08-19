@@ -1,6 +1,7 @@
 package com.carava.carwash.store.service
 
 import com.carava.carwash.global.dto.ApiResponse
+import com.carava.carwash.global.exception.*
 import com.carava.carwash.store.dto.*
 import com.carava.carwash.store.entity.Store
 import com.carava.carwash.store.entity.StoreStatus
@@ -210,5 +211,23 @@ class StoreService(
                 message = "매장명 확인 중 오류가 발생했습니다: ${e.message}"
             )
         }
+    }
+
+    /**
+     * 매장 소유권 검증 및 매장 반환
+     * 
+     * @param storeId 매장 ID
+     * @param ownerMemberId 소유자 회원 ID
+     * @return 검증된 매장 엔티티
+     * @throws StoreNotFoundException 매장을 찾을 수 없는 경우
+     * @throws UnauthorizedAccessException 소유권이 없는 경우
+     */
+    fun validateStoreOwnership(storeId: Long, ownerMemberId: Long): Store {
+        val store = storeRepository.findById(storeId)
+            .orElseThrow { StoreNotFoundException("매장을 찾을 수 없습니다") }
+        
+        store.validateOwnership(ownerMemberId)
+        
+        return store
     }
 } 

@@ -1,7 +1,7 @@
 package com.carava.carwash.store.controller
 
+import com.carava.carwash.global.annotation.CurrentMemberId
 import com.carava.carwash.global.dto.ApiResponse
-import com.carava.carwash.global.exception.UnauthorizedAccessException
 import com.carava.carwash.store.dto.*
 import com.carava.carwash.store.service.StoreService
 import io.swagger.v3.oas.annotations.Operation
@@ -11,7 +11,6 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
-import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
 
 @RestController
@@ -29,9 +28,8 @@ class StoreController(
     @SwaggerApiResponse(responseCode = "409", description = "매장명 중복 또는 이미 등록된 매장 존재")
     fun createStore(
         @Valid @RequestBody request: CreateStoreRequestDto,
-        authentication: Authentication
+        @CurrentMemberId ownerId: Long
     ): ResponseEntity<ApiResponse<StoreResponseDto>> {
-        val ownerId = getOwnerIdFromAuth(authentication)
         val response = storeService.createStore(ownerId, request)
         
         val status = if (response.success) HttpStatus.CREATED else HttpStatus.BAD_REQUEST
@@ -44,9 +42,8 @@ class StoreController(
     @SwaggerApiResponse(responseCode = "401", description = "인증 실패")
     @SwaggerApiResponse(responseCode = "404", description = "등록된 매장 없음")
     fun getMyStore(
-        authentication: Authentication
+        @CurrentMemberId ownerId: Long
     ): ResponseEntity<ApiResponse<StoreResponseDto>> {
-        val ownerId = getOwnerIdFromAuth(authentication)
         val response = storeService.getMyStore(ownerId)
         
         val status = if (response.success) HttpStatus.OK else HttpStatus.NOT_FOUND
@@ -62,9 +59,8 @@ class StoreController(
     @SwaggerApiResponse(responseCode = "409", description = "매장명 중복")
     fun updateStore(
         @Valid @RequestBody request: UpdateStoreRequestDto,
-        authentication: Authentication
+        @CurrentMemberId ownerId: Long
     ): ResponseEntity<ApiResponse<StoreResponseDto>> {
-        val ownerId = getOwnerIdFromAuth(authentication)
         val response = storeService.updateStore(ownerId, request)
         
         val status = when {
@@ -84,9 +80,8 @@ class StoreController(
     @SwaggerApiResponse(responseCode = "404", description = "매장을 찾을 수 없음")
     fun toggleStoreStatus(
         @Parameter(description = "활성화 여부") @RequestParam activate: Boolean,
-        authentication: Authentication
+        @CurrentMemberId ownerId: Long
     ): ResponseEntity<ApiResponse<StoreResponseDto>> {
-        val ownerId = getOwnerIdFromAuth(authentication)
         val response = storeService.toggleStoreStatus(ownerId, activate)
         
         val status = if (response.success) HttpStatus.OK else HttpStatus.NOT_FOUND
@@ -99,9 +94,8 @@ class StoreController(
     @SwaggerApiResponse(responseCode = "401", description = "인증 실패")
     @SwaggerApiResponse(responseCode = "404", description = "매장을 찾을 수 없음")
     fun deleteStore(
-        authentication: Authentication
+        @CurrentMemberId ownerId: Long
     ): ResponseEntity<ApiResponse<Nothing>> {
-        val ownerId = getOwnerIdFromAuth(authentication)
         val response = storeService.deleteStore(ownerId)
         
         val status = if (response.success) HttpStatus.OK else HttpStatus.NOT_FOUND
@@ -118,10 +112,5 @@ class StoreController(
         return ResponseEntity.ok(response)
     }
 
-    private fun getOwnerIdFromAuth(authentication: Authentication): Long {
-        // JWT에서 ownerId 추출 (임시로 username을 사용)
-        // 실제로는 JWT에서 사장님 ID를 추출해야 함
-        return authentication.name.toLongOrNull() 
-            ?: throw UnauthorizedAccessException("유효하지 않은 인증 정보입니다")
-    }
+
 } 

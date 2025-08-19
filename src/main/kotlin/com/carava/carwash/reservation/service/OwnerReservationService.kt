@@ -1,11 +1,13 @@
 package com.carava.carwash.reservation.service
 
 import com.carava.carwash.global.dto.ApiResponse
+import com.carava.carwash.global.exception.*
 import com.carava.carwash.reservation.dto.*
 import com.carava.carwash.reservation.entity.Reservation
 import com.carava.carwash.reservation.entity.ReservationStatus
 import com.carava.carwash.reservation.repository.ReservationRepository
 import com.carava.carwash.store.repository.StoreRepository
+import com.carava.carwash.store.service.StoreService
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
@@ -21,7 +23,8 @@ import java.time.LocalTime
 @Transactional(readOnly = true)
 class OwnerReservationService(
     private val reservationRepository: ReservationRepository,
-    private val storeRepository: StoreRepository
+    private val storeRepository: StoreRepository,
+    private val storeService: StoreService
 ) {
 
     /**
@@ -35,11 +38,10 @@ class OwnerReservationService(
         page: Int,
         size: Int
     ): ApiResponse<Page<OwnerReservationListResponseDto>> {
+        // 매장 소유권 검증 (throw 방식)
+        storeService.validateStoreOwnership(storeId, ownerId)
+        
         return try {
-            // 매장 소유자 확인
-            val store = storeRepository.findByIdAndOwnerMemberId(storeId, ownerId)
-                ?: return ApiResponse.error("STORE_NOT_FOUND", "매장을 찾을 수 없습니다")
-
             val pageable: Pageable = PageRequest.of(page, size, Sort.by("reservationDate", "reservationTime").descending())
             
             val reservationsPage = when {
@@ -64,7 +66,7 @@ class OwnerReservationService(
 
             ApiResponse.success(responsePage, "예약 목록 조회 완료")
         } catch (e: Exception) {
-            ApiResponse.error("INTERNAL_ERROR", "예약 목록 조회 중 오류가 발생했습니다")
+            throw RuntimeException("예약 목록 조회 중 오류가 발생했습니다: ${e.message}", e)
         }
     }
 
@@ -77,15 +79,14 @@ class OwnerReservationService(
         reservationId: Long
     ): ApiResponse<OwnerReservationResponseDto> {
         return try {
-            // 매장 소유자 확인
-            val store = storeRepository.findByIdAndOwnerMemberId(storeId, ownerId)
-                ?: return ApiResponse.error("STORE_NOT_FOUND", "매장을 찾을 수 없습니다")
+            // 매장 소유권 검증
+            storeService.validateStoreOwnership(storeId, ownerId)
 
-            val reservation = reservationRepository.findById(reservationId).orElse(null)
-                ?: return ApiResponse.error("RESERVATION_NOT_FOUND", "예약을 찾을 수 없습니다")
+            val reservation = reservationRepository.findById(reservationId)
+                .orElseThrow { ReservationNotFoundException("예약을 찾을 수 없습니다") }
 
             if (reservation.storeId != storeId) {
-                return ApiResponse.error("RESERVATION_NOT_FOUND", "해당 매장의 예약이 아닙니다")
+                throw ReservationNotFoundException("해당 매장의 예약이 아닙니다")
             }
 
             val response = OwnerReservationResponseDto.from(
@@ -100,7 +101,7 @@ class OwnerReservationService(
 
             ApiResponse.success(response, "예약 상세 조회 완료")
         } catch (e: Exception) {
-            ApiResponse.error("INTERNAL_ERROR", "예약 상세 조회 중 오류가 발생했습니다")
+            throw RuntimeException("예약 상세 조회 중 오류가 발생했습니다: ${e.message}", e)
         }
     }
 
@@ -114,29 +115,26 @@ class OwnerReservationService(
         reservationId: Long
     ): ApiResponse<Nothing> {
         return try {
-            // 매장 소유자 확인
-            val store = storeRepository.findByIdAndOwnerMemberId(storeId, ownerId)
-                ?: return ApiResponse.error("STORE_NOT_FOUND", "매장을 찾을 수 없습니다")
+            // 매장 소유권 검증
+            storeService.validateStoreOwnership(storeId, ownerId)
 
-            val reservation = reservationRepository.findById(reservationId).orElse(null)
-                ?: return ApiResponse.error("RESERVATION_NOT_FOUND", "예약을 찾을 수 없습니다")
+            val reservation = reservationRepository.findById(reservationId)
+                .orElseThrow { ReservationNotFoundException("예약을 찾을 수 없습니다") }
 
             if (reservation.storeId != storeId) {
-                return ApiResponse.error("RESERVATION_NOT_FOUND", "해당 매장의 예약이 아닙니다")
+                throw ReservationNotFoundException("해당 매장의 예약이 아닙니다")
             }
 
             if (reservation.status != ReservationStatus.PENDING) {
-                return ApiResponse.error("INVALID_STATUS", "대기 중인 예약만 승인할 수 있습니다")
+                throw InvalidReservationStatusException("대기 중인 예약만 승인할 수 있습니다")
             }
 
             reservation.confirm()
             reservationRepository.save(reservation)
 
             ApiResponse.success(message = "예약이 승인되었습니다")
-        } catch (e: IllegalStateException) {
-            ApiResponse.error("INVALID_STATUS", e.message ?: "잘못된 예약 상태입니다")
         } catch (e: Exception) {
-            ApiResponse.error("INTERNAL_ERROR", "예약 승인 중 오류가 발생했습니다")
+            throw RuntimeException("예약 승인 중 오류가 발생했습니다: ${e.message}", e)
         }
     }
 
@@ -151,29 +149,26 @@ class OwnerReservationService(
         reason: String
     ): ApiResponse<Nothing> {
         return try {
-            // 매장 소유자 확인
-            val store = storeRepository.findByIdAndOwnerMemberId(storeId, ownerId)
-                ?: return ApiResponse.error("STORE_NOT_FOUND", "매장을 찾을 수 없습니다")
+            // 매장 소유권 검증
+            storeService.validateStoreOwnership(storeId, ownerId)
 
-            val reservation = reservationRepository.findById(reservationId).orElse(null)
-                ?: return ApiResponse.error("RESERVATION_NOT_FOUND", "예약을 찾을 수 없습니다")
+            val reservation = reservationRepository.findById(reservationId)
+                .orElseThrow { ReservationNotFoundException("예약을 찾을 수 없습니다") }
 
             if (reservation.storeId != storeId) {
-                return ApiResponse.error("RESERVATION_NOT_FOUND", "해당 매장의 예약이 아닙니다")
+                throw ReservationNotFoundException("해당 매장의 예약이 아닙니다")
             }
 
             if (reservation.status != ReservationStatus.PENDING) {
-                return ApiResponse.error("INVALID_STATUS", "대기 중인 예약만 거절할 수 있습니다")
+                throw InvalidReservationStatusException("대기 중인 예약만 거절할 수 있습니다")
             }
 
             reservation.reject(reason)
             reservationRepository.save(reservation)
 
             ApiResponse.success(message = "예약이 거절되었습니다")
-        } catch (e: IllegalStateException) {
-            ApiResponse.error("INVALID_STATUS", e.message ?: "잘못된 예약 상태입니다")
         } catch (e: Exception) {
-            ApiResponse.error("INTERNAL_ERROR", "예약 거절 중 오류가 발생했습니다")
+            throw RuntimeException("예약 거절 중 오류가 발생했습니다: ${e.message}", e)
         }
     }
 
@@ -188,22 +183,21 @@ class OwnerReservationService(
         newStatus: ReservationStatus
     ): ApiResponse<Nothing> {
         return try {
-            // 매장 소유자 확인
-            val store = storeRepository.findByIdAndOwnerMemberId(storeId, ownerId)
-                ?: return ApiResponse.error("STORE_NOT_FOUND", "매장을 찾을 수 없습니다")
+            // 매장 소유권 검증
+            storeService.validateStoreOwnership(storeId, ownerId)
 
-            val reservation = reservationRepository.findById(reservationId).orElse(null)
-                ?: return ApiResponse.error("RESERVATION_NOT_FOUND", "예약을 찾을 수 없습니다")
+            val reservation = reservationRepository.findById(reservationId)
+                .orElseThrow { ReservationNotFoundException("예약을 찾을 수 없습니다") }
 
             if (reservation.storeId != storeId) {
-                return ApiResponse.error("RESERVATION_NOT_FOUND", "해당 매장의 예약이 아닙니다")
+                throw ReservationNotFoundException("해당 매장의 예약이 아닙니다")
             }
 
             when (newStatus) {
                 ReservationStatus.IN_PROGRESS -> reservation.startService()
                 ReservationStatus.COMPLETED -> reservation.complete()
                 ReservationStatus.NO_SHOW -> reservation.markAsNoShow()
-                else -> return ApiResponse.error("INVALID_STATUS", "지원하지 않는 상태 변경입니다")
+                else -> throw InvalidReservationStatusException("지원하지 않는 상태 변경입니다")
             }
 
             reservationRepository.save(reservation)
@@ -216,10 +210,8 @@ class OwnerReservationService(
             }
 
             ApiResponse.success(message = message)
-        } catch (e: IllegalStateException) {
-            ApiResponse.error("INVALID_STATUS", e.message ?: "잘못된 예약 상태입니다")
         } catch (e: Exception) {
-            ApiResponse.error("INTERNAL_ERROR", "상태 변경 중 오류가 발생했습니다")
+            throw RuntimeException("상태 변경 중 오류가 발생했습니다: ${e.message}", e)
         }
     }
 
@@ -233,9 +225,8 @@ class OwnerReservationService(
         endDate: LocalDate
     ): ApiResponse<ReservationSummaryDto> {
         return try {
-            // 매장 소유자 확인
-            val store = storeRepository.findByIdAndOwnerMemberId(storeId, ownerId)
-                ?: return ApiResponse.error("STORE_NOT_FOUND", "매장을 찾을 수 없습니다")
+            // 매장 소유권 검증
+            storeService.validateStoreOwnership(storeId, ownerId)
 
             val pendingCount = reservationRepository.countByStoreIdAndStatus(storeId, ReservationStatus.PENDING)
             val confirmedCount = reservationRepository.countByStoreIdAndStatus(storeId, ReservationStatus.CONFIRMED)
@@ -263,7 +254,7 @@ class OwnerReservationService(
 
             ApiResponse.success(summary, "예약 현황 요약 조회 완료")
         } catch (e: Exception) {
-            ApiResponse.error("INTERNAL_ERROR", "예약 현황 조회 중 오류가 발생했습니다")
+            throw RuntimeException("예약 현황 조회 중 오류가 발생했습니다: ${e.message}", e)
         }
     }
 

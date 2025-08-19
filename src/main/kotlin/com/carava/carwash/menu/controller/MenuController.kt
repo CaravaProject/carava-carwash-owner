@@ -1,9 +1,9 @@
 package com.carava.carwash.menu.controller
 
+import com.carava.carwash.global.annotation.CurrentMemberId
+import com.carava.carwash.global.dto.ApiResponse
 import com.carava.carwash.menu.dto.*
 import com.carava.carwash.menu.service.MenuService
-import com.carava.carwash.global.dto.ApiResponse
-import com.carava.carwash.global.exception.UnauthorizedAccessException
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.responses.ApiResponse as SwaggerApiResponse
@@ -11,7 +11,6 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
-import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
 
 @RestController
@@ -33,9 +32,8 @@ class MenuController(
     @SwaggerApiResponse(responseCode = "409", description = "메뉴명 중복")
     fun createMenu(
         @Valid @RequestBody request: CreateMenuRequestDto,
-        authentication: Authentication
+        @CurrentMemberId ownerId: Long
     ): ResponseEntity<ApiResponse<MenuResponseDto>> {
-        val ownerId = getOwnerIdFromAuth(authentication)
         val response = menuService.createMenu(ownerId, request)
         
         val status = when {
@@ -57,9 +55,9 @@ class MenuController(
     @SwaggerApiResponse(responseCode = "404", description = "매장을 찾을 수 없음")
     fun getStoreMenus(
         @Parameter(description = "비활성 메뉴 포함 여부") @RequestParam(defaultValue = "false") includeInactive: Boolean,
-        authentication: Authentication
+        @CurrentMemberId ownerId: Long
     ): ResponseEntity<ApiResponse<List<MenuListResponseDto>>> {
-        val ownerId = getOwnerIdFromAuth(authentication)
+
         val response = menuService.getStoreMenus(ownerId, includeInactive)
         
         val status = if (response.success) HttpStatus.OK else HttpStatus.NOT_FOUND
@@ -75,9 +73,9 @@ class MenuController(
     @SwaggerApiResponse(responseCode = "401", description = "인증 실패")
     @SwaggerApiResponse(responseCode = "404", description = "매장을 찾을 수 없음")
     fun getStoreMenusByCategory(
-        authentication: Authentication
+        @CurrentMemberId ownerId: Long
     ): ResponseEntity<ApiResponse<List<CategoryMenuResponseDto>>> {
-        val ownerId = getOwnerIdFromAuth(authentication)
+
         val response = menuService.getStoreMenusByCategory(ownerId)
         
         val status = if (response.success) HttpStatus.OK else HttpStatus.NOT_FOUND
@@ -94,9 +92,9 @@ class MenuController(
     @SwaggerApiResponse(responseCode = "404", description = "메뉴를 찾을 수 없음")
     fun getMenuDetail(
         @PathVariable id: Long,
-        authentication: Authentication
+        @CurrentMemberId ownerId: Long
     ): ResponseEntity<ApiResponse<MenuResponseDto>> {
-        val ownerId = getOwnerIdFromAuth(authentication)
+
         val response = menuService.getMenuDetail(ownerId, id)
         
         val status = if (response.success) HttpStatus.OK else HttpStatus.NOT_FOUND
@@ -116,9 +114,9 @@ class MenuController(
     fun updateMenu(
         @PathVariable id: Long,
         @Valid @RequestBody request: UpdateMenuRequestDto,
-        authentication: Authentication
+        @CurrentMemberId ownerId: Long
     ): ResponseEntity<ApiResponse<MenuResponseDto>> {
-        val ownerId = getOwnerIdFromAuth(authentication)
+
         val response = menuService.updateMenu(ownerId, id, request)
         
         val status = when {
@@ -141,9 +139,9 @@ class MenuController(
     fun toggleMenuStatus(
         @PathVariable id: Long,
         @Parameter(description = "활성화 여부") @RequestParam activate: Boolean,
-        authentication: Authentication
+        @CurrentMemberId ownerId: Long
     ): ResponseEntity<ApiResponse<MenuResponseDto>> {
-        val ownerId = getOwnerIdFromAuth(authentication)
+
         val response = menuService.toggleMenuStatus(ownerId, id, activate)
         
         val status = if (response.success) HttpStatus.OK else HttpStatus.NOT_FOUND
@@ -160,9 +158,9 @@ class MenuController(
     @SwaggerApiResponse(responseCode = "404", description = "메뉴를 찾을 수 없음")
     fun deleteMenu(
         @PathVariable id: Long,
-        authentication: Authentication
+        @CurrentMemberId ownerId: Long
     ): ResponseEntity<ApiResponse<Nothing>> {
-        val ownerId = getOwnerIdFromAuth(authentication)
+
         val response = menuService.deleteMenu(ownerId, id)
         
         val status = if (response.success) HttpStatus.OK else HttpStatus.NOT_FOUND
@@ -180,9 +178,9 @@ class MenuController(
     @SwaggerApiResponse(responseCode = "404", description = "매장을 찾을 수 없음")
     fun updateMenuOrder(
         @Valid @RequestBody request: UpdateMenuOrderRequestDto,
-        authentication: Authentication
+        @CurrentMemberId ownerId: Long
     ): ResponseEntity<ApiResponse<List<MenuListResponseDto>>> {
-        val ownerId = getOwnerIdFromAuth(authentication)
+
         val response = menuService.updateMenuOrder(ownerId, request)
         
         val status = when {
@@ -202,19 +200,14 @@ class MenuController(
     @SwaggerApiResponse(responseCode = "401", description = "인증 실패")
     @SwaggerApiResponse(responseCode = "404", description = "매장을 찾을 수 없음")
     fun getStoreMenuSummary(
-        authentication: Authentication
+        @CurrentMemberId ownerId: Long
     ): ResponseEntity<ApiResponse<StoreMenuSummaryResponseDto>> {
-        val ownerId = getOwnerIdFromAuth(authentication)
+
         val response = menuService.getStoreMenuSummary(ownerId)
         
         val status = if (response.success) HttpStatus.OK else HttpStatus.NOT_FOUND
         return ResponseEntity.status(status).body(response)
     }
 
-    private fun getOwnerIdFromAuth(authentication: Authentication): Long {
-        // JWT에서 ownerId 추출 (임시로 username을 사용)
-        // 실제로는 JWT에서 사장님 ID를 추출해야 함
-        return authentication.name.toLongOrNull() 
-            ?: throw UnauthorizedAccessException("유효하지 않은 인증 정보입니다")
-    }
+
 } 
