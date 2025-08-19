@@ -1,6 +1,7 @@
 package com.carava.carwash.reservation.entity
 
 import com.carava.carwash.global.entity.BaseEntity
+import com.carava.carwash.global.exception.InvalidReservationStatusException
 import jakarta.persistence.*
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -66,7 +67,7 @@ class Reservation(
 
     fun confirm(): Reservation {
         if (status != ReservationStatus.PENDING) {
-            throw IllegalStateException("대기 중인 예약만 승인할 수 있습니다")
+            throw InvalidReservationStatusException("대기 중인 예약만 승인할 수 있습니다")
         }
         status = ReservationStatus.CONFIRMED
         return this
@@ -74,7 +75,7 @@ class Reservation(
 
     fun reject(reason: String): Reservation {
         if (status != ReservationStatus.PENDING) {
-            throw IllegalStateException("대기 중인 예약만 거절할 수 있습니다")
+            throw InvalidReservationStatusException("대기 중인 예약만 거절할 수 있습니다")
         }
         status = ReservationStatus.CANCELLED
         rejectionReason = reason
@@ -83,7 +84,7 @@ class Reservation(
 
     fun startService(): Reservation {
         if (status != ReservationStatus.CONFIRMED) {
-            throw IllegalStateException("승인된 예약만 서비스를 시작할 수 있습니다")
+            throw InvalidReservationStatusException("승인된 예약만 서비스를 시작할 수 있습니다")
         }
         status = ReservationStatus.IN_PROGRESS
         return this
@@ -91,7 +92,7 @@ class Reservation(
 
     fun complete(): Reservation {
         if (status != ReservationStatus.IN_PROGRESS) {
-            throw IllegalStateException("진행 중인 예약만 완료할 수 있습니다")
+            throw InvalidReservationStatusException("진행 중인 예약만 완료할 수 있습니다")
         }
         status = ReservationStatus.COMPLETED
         return this
@@ -99,7 +100,7 @@ class Reservation(
 
     fun markAsNoShow(): Reservation {
         if (status != ReservationStatus.CONFIRMED) {
-            throw IllegalStateException("승인된 예약만 노쇼 처리할 수 있습니다")
+            throw InvalidReservationStatusException("승인된 예약만 노쇼 처리할 수 있습니다")
         }
         status = ReservationStatus.NO_SHOW
         return this

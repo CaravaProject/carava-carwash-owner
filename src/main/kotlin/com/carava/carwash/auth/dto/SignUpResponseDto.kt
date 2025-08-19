@@ -2,13 +2,24 @@ package com.carava.carwash.auth.dto
 
 import com.carava.carwash.auth.entity.Auth
 import com.carava.carwash.owner.entity.OwnerMember
+import io.swagger.v3.oas.annotations.media.Schema
 import java.time.format.DateTimeFormatter
 
-data class SignUpResponseDto (
+@Schema(description = "사업자 회원가입 응답")
+data class SignUpResponseDto(
+    @Schema(description = "인증 ID", example = "1")
     val authId: Long,
+    
+    @Schema(description = "이메일", example = "owner@example.com")
     val email: String,
+    
+    @Schema(description = "사업자 이름", example = "김사장")
     val name: String,
+    
+    @Schema(description = "사업체명", example = "깨끗한 세차장")
     val businessName: String,
+    
+    @Schema(description = "생성일시", example = "2024-01-01T10:00:00")
     val createdAt: String? = null
 ) {
     companion object {

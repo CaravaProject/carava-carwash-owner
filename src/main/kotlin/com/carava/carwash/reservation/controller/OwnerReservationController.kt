@@ -2,6 +2,7 @@ package com.carava.carwash.reservation.controller
 
 import com.carava.carwash.global.dto.ApiResponse
 import com.carava.carwash.global.dto.ErrorResponse
+import com.carava.carwash.global.exception.UnauthorizedAccessException
 import com.carava.carwash.reservation.dto.*
 import com.carava.carwash.reservation.entity.ReservationStatus
 import com.carava.carwash.reservation.service.OwnerReservationService
@@ -153,7 +154,7 @@ class OwnerReservationController(
         @PathVariable reservationId: Long,
         authentication: Authentication
     ): ResponseEntity<ApiResponse<OwnerReservationResponseDto>> {
-        val ownerId = getOwnerIdFromAuth(authentication)
+        val ownerId = getOwnerIdFromAuth(authentication) 
         val response = ownerReservationService.getReservationDetail(ownerId, storeId, reservationId)
         
         val httpStatus = if (response.success) HttpStatus.OK else HttpStatus.NOT_FOUND
@@ -343,6 +344,6 @@ class OwnerReservationController(
         // JWT에서 ownerId 추출 (임시로 username을 사용)
         // 실제로는 JWT에서 사장님 ID를 추출해야 함
         return authentication.name.toLongOrNull() 
-            ?: throw IllegalArgumentException("유효하지 않은 인증 정보입니다")
+            ?: throw UnauthorizedAccessException("유효하지 않은 인증 정보입니다")
     }
 } 

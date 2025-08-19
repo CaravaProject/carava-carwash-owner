@@ -3,6 +3,7 @@ package com.carava.carwash.menu.controller
 import com.carava.carwash.menu.dto.*
 import com.carava.carwash.menu.service.MenuService
 import com.carava.carwash.global.dto.ApiResponse
+import com.carava.carwash.global.exception.UnauthorizedAccessException
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.responses.ApiResponse as SwaggerApiResponse
@@ -214,6 +215,6 @@ class MenuController(
         // JWT에서 ownerId 추출 (임시로 username을 사용)
         // 실제로는 JWT에서 사장님 ID를 추출해야 함
         return authentication.name.toLongOrNull() 
-            ?: throw IllegalArgumentException("유효하지 않은 인증 정보입니다")
+            ?: throw UnauthorizedAccessException("유효하지 않은 인증 정보입니다")
     }
 } 
